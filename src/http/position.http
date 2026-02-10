@@ -1,0 +1,43 @@
+### Variables
+@baseUrl = http://localhost:5000/api
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MDM3MzY0MiwiZXhwIjoxNzcwNDYwMDQyfQ.r90t5qmzJiVAGLBrwTw_btMej6ATYIf4N6vPjv80d6c
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFlOTE0ZjM4LWFjZjUtNDlmYS1hZDJkLTkxMDgzNmNlYWRhMiIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzI0IiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yNCIsInJvbGUiOiJtZW1iZXIiLCJ5ZWFyT2ZTdHVkeSI6IjEiLCJpYXQiOjE3NzAzNzM4MjEsImV4cCI6MTc3MDQ2MDIyMX0.xdbSj7carGvdvOExjTehCdha-ts2LsHa0ED4vESUYeA
+@electionId = 2ce3a830-0279-4a60-a1c8-e3a710b78c91
+@positionId = ce0d023e-81f2-42bf-ade5-52d430c1ffb2
+
+### 1. Create a Position (Admin Only)
+POST {{baseUrl}}/positions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "electionId": "{{electionId}}",
+  "title": "Year 3 Representative",
+  "minParticipationPoints": 50,
+  "slotsAvailable": 1,
+  "targetYears": ["3"]
+}
+
+### 2. Get All Positions for an Election
+GET {{baseUrl}}/positions/election/{{electionId}}
+Authorization: Bearer {{adminToken}}
+
+### 3. Get Eligible Positions (Ballot View)
+# Note: Ensure the 'year' query matches the student's year in the JWT
+GET {{baseUrl}}/positions/eligible/{{electionId}}?year=4
+Authorization: Bearer {{studentToken}}
+
+
+### 6. Update Position (Admin Only)
+PUT {{baseUrl}}/positions/{{positionId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "slotsAvailable": 2,
+  "targetYears": ["3", "4"]
+}
+
+### 7. Delete Position (Admin Only)
+DELETE {{baseUrl}}/positions/{{positionId}}
+Authorization: Bearer {{adminToken}}

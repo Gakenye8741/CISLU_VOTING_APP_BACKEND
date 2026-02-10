@@ -1,0 +1,57 @@
+### Variables
+@baseUrl = http://localhost:5000/api
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJmMzEwMGEzLTc2N2YtNGNlYi1hZTlhLTdjYTkxNDU1OGVlNyIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIzIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMyIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc2OTgwNzgxMSwiZXhwIjoxNzY5ODk0MjExfQ.Vm-ozK3epv3TcHfuLZFfrxvBf9WGdjTw6ee0kS6yFTE
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkwNzgzYzVmLTkyMzktNDdlZi1iZDA2LTkxNjk0ZDg3NzQ1YiIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJHYWtlbnllIE5kaXJpdHUiLCJyb2xlIjoibWVtYmVyIiwieWVhck9mU3R1ZHkiOiI0IiwiaWF0IjoxNzY5ODA5MDIzLCJleHAiOjE3Njk4OTU0MjN9.E8P8EowRqNVm3UEUaGaxwVlFtE3s_ed7dPP9gT7pwZk
+@electionId = e0374c3a-049f-4a49-96e3-a610ca8efece
+### --------------------------------------------------------------
+### 1. VOTER: PARTICIPATION & STATUS
+### --------------------------------------------------------------
+
+### Check if I have already voted
+# Used to determine if the "Vote Now" button should be disabled
+GET {{baseUrl}}/voter-history/status/{{electionId}}
+Authorization: Bearer {{studentToken}}
+
+---
+
+### Record Participation (Log the Vote)
+# This is triggered when the student submits their ballot.
+# The system captures IP and User Agent automatically in the controller.
+POST {{baseUrl}}/voter-history/participate
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "electionId": "{{electionId}}"
+}
+
+
+
+### Test Double-Voting Prevention
+# Run this immediately after the request above with the SAME studentToken.
+# Expected Result: 403 Forbidden - "Security Alert: This member has already cast a ballot..."
+POST {{baseUrl}}/voter-history/participate
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "electionId": "{{electionId}}"
+}
+
+
+
+### --------------------------------------------------------------
+### 2. ADMIN: AUDIT & TURNOUT
+### --------------------------------------------------------------
+
+### Get Real-Time Turnout Stats
+# Returns the total count of unique ballots cast so far.
+GET {{baseUrl}}/voter-history/turnout/{{electionId}}
+Authorization: Bearer {{adminToken}}
+
+
+### Get Detailed Participation Audit Log
+# Returns list of students who voted (Name, Reg No, IP, Timestamp).
+# Used to verify the integrity of the voter roll.
+GET {{baseUrl}}/voter-history/audit/{{electionId}}
+Authorization: Bearer {{adminToken}}

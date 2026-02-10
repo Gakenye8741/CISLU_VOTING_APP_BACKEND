@@ -1,0 +1,93 @@
+# ======================================
+# 🔔 Notifications API - Client
+# ======================================
+
+@baseUrl = http://localhost:5000/api/notifications
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNhNTdmN2VlLWZiZDgtNGU5Mi05YmFlLTEyZmZjZTdiODdiNCIsInJlZ19ubyI6ImFkbWluMSIsIm5hbWUiOiJhZG1pbjEiLCJyb2xlIjoiYWRtaW4iLCJzY2hvb2wiOm51bGwsImlhdCI6MTc2NTE5OTQ1NCwiZXhwIjoxNzY1Mjg1ODU0fQ.Ew2Auvg1wUu23l6iwozxrglyKQVqx6C2inwnrxi9HrU
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImEwMzU2MWYxLTU3OTMtNDc5Zi1hYmE0LWJjYjE2NzcyOWJkMCIsInJlZ19ubyI6InN0dWRlbnQvMDUiLCJuYW1lIjoiUmVubnkga29lY2giLCJyb2xlIjoidm90ZXIiLCJzY2hvb2wiOiJTY2llbmNlIiwiaWF0IjoxNzY1MTk5Mzk0LCJleHAiOjE3NjUyODU3OTR9.BLpFvEx7fsIb49jfc2J2Wcpf_4PuFHQZXZ1bwh9eV-8
+@userId = a03561f1-5793-479f-aba4-bcb167729bd0
+@notificationId = NOTIFICATION_UUID_HERE
+
+##########################################################
+### ADMIN - CREATE / BROADCAST
+##########################################################
+
+### Create a SINGLE notification (Admin)
+POST {{baseUrl}}/create
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "user_id": "{{userId}}",
+  "title": "Election Opening",
+  "message": "The 2025 Elections have officially started!",
+  "type": "SYSTEM",
+  "is_read": false
+}
+
+### Send notification to MANY users (Admin)
+POST {{baseUrl}}/bulk
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "userIds": [
+    "11111111-1111-1111-1111-111111111111",
+    "22222222-2222-2222-2222-222222222222"
+  ],
+  "payload": {
+    "title": "Voting Reminder",
+    "message": "Hi voter! Don't forget to cast your vote today.",
+    "type": "REMINDER",
+    "is_read": false
+  }
+}
+
+### Send notification to ALL users (Admin)
+POST {{baseUrl}}/broadcast
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Final Reminder",
+  "message": "Voting closes in 2 hours!",
+  "type": "REMINDER",
+  "is_read": false
+}
+
+### Get ALL notifications (Admin)
+GET {{baseUrl}}/
+Authorization: Bearer {{adminToken}}
+
+##########################################################
+### USER - READ
+##########################################################
+
+### Get notifications for a specific user
+GET {{baseUrl}}/user/{{userId}}
+Authorization: Bearer {{userToken}}
+
+### Mark ONE notification as read
+PUT {{baseUrl}}/mark-read/{{notificationId}}
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "is_read": true
+}
+
+### Mark ALL notifications as read for a user
+PUT {{baseUrl}}/mark-all-read/{{userId}}
+Authorization: Bearer {{userToken}}
+
+##########################################################
+### ADMIN - DELETE
+##########################################################
+
+### Delete ONE notification
+DELETE {{baseUrl}}/delete/{{notificationId}}
+Authorization: Bearer {{adminToken}}
+
+### Delete ALL notifications for a user
+DELETE {{baseUrl}}/delete-all/{{userId}}
+Authorization: Bearer {{adminToken}}

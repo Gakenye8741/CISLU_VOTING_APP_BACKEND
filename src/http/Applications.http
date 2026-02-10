@@ -1,0 +1,77 @@
+### Variables
+@baseUrl = http://localhost:5000/api
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MDM3MzY0MiwiZXhwIjoxNzcwNDYwMDQyfQ.r90t5qmzJiVAGLBrwTw_btMej6ATYIf4N6vPjv80d6c
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFlOTE0ZjM4LWFjZjUtNDlmYS1hZDJkLTkxMDgzNmNlYWRhMiIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzI0IiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yNCIsInJvbGUiOiJtZW1iZXIiLCJ5ZWFyT2ZTdHVkeSI6IjEiLCJpYXQiOjE3NzAzNzM4MjEsImV4cCI6MTc3MDQ2MDIyMX0.xdbSj7carGvdvOExjTehCdha-ts2LsHa0ED4vESUYeA
+@electionId = 2ce3a830-0279-4a60-a1c8-e3a710b78c91
+@positionId = ce0d023e-81f2-42bf-ade5-52d430c1ffb2
+@targetAppId = cdaa7131-ee4b-4bed-9397-9c6e8abd6c23
+
+### --------------------------------------------------------------
+### 1. CLUB MEMBER: SUBMIT LEADERSHIP BID
+### --------------------------------------------------------------
+
+### Submit Club Application
+# Note: 'requiredPoints' now refers to Club Attendance/Participation points
+### Submit Club Application
+POST {{baseUrl}}/candidate-applications
+Content-Type: application/json
+Authorization: Bearer {{studentToken}}
+
+{
+  "userId": "1e914f38-acf5-49fa-ad2d-910836ceada2", 
+  "electionId": "{{electionId}}",
+  "positionId": "{{positionId}}",
+  "statementOfIntent": "As a dedicated member of this club for 3 years, I intend to bridge the gap between junior and senior members.",
+  "manifesto": "I plan to organize monthly hackathons, secure industry sponsorships for our annual projects, and launch a club mentorship program to help new members integrate faster into our technical community.",
+  "imageUrl": "https://imgur.com/club-leader-profile.jpg",
+  "requiredPoints": 30
+}
+
+### Refine Leadership Statement (Self)
+# Only works if the Club Patron hasn't started the review ('pending')
+PATCH {{baseUrl}}/candidate-applications/{{targetAppId}}
+Content-Type: application/json
+Authorization: Bearer {{studentToken}}
+
+{
+  "statementOfIntent": "REVISED: I intend to prioritize practical workshops and regional club collaborations."
+}
+
+### --------------------------------------------------------------
+### 2. CLUB PATRON / COMMITTEE: SCRUTINY
+### --------------------------------------------------------------
+
+### List All Candidates for this Club Election
+# Used by the Patron to see the field of candidates
+GET {{baseUrl}}/candidate-applications/election/{{electionId}}
+Authorization: Bearer {{adminToken}}
+
+### View Candidate Full Bio & History
+# Check participation points and previous club involvement
+GET {{baseUrl}}/candidate-applications/{{targetAppId}}
+Authorization: Bearer {{adminToken}}
+
+### Approve/Reject Club Candidate
+# Statuses: 'under_review' (checking disciplinary record), 'approved', 'rejected'
+PATCH {{baseUrl}}/candidate-applications/{{targetAppId}}/review
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "status": "approved",
+  "adminRemarks": "Member has consistent attendance and has led 2 successful club projects. Approved for Chairmanship race."
+}
+
+### --------------------------------------------------------------
+### 3. WITHDRAWAL & DISQUALIFICATION
+### --------------------------------------------------------------
+
+### Withdraw Candidacy (Student)
+# Student withdraws bid due to academic pressure or personal reasons
+DELETE {{baseUrl}}/candidate-applications/{{targetAppId}}/withdraw
+Authorization: Bearer {{studentToken}}
+
+### Disqualify Candidate (Admin Only)
+# Admin removes candidate for breach of club constitution
+DELETE {{baseUrl}}/candidate-applications/{{targetAppId}}
+Authorization: Bearer {{adminToken}}

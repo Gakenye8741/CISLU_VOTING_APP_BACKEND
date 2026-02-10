@@ -1,0 +1,70 @@
+@student_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWdfbm8iOiJTQy9DT00vMDAwOS8yMiIsIm5hbWUiOiJTQy9DT00vMDAwOS8yMiIsImlkIjoiNDZiNmY0YjMtNmYxYi00M2ViLTg3YjUtMjhlZWNlZTUxMjY5Iiwicm9sZSI6InZvdGVyIiwiaWF0IjoxNzYzNTUwOTIxLCJleHAiOjE3NjM1NTQ1MjF9.4igJ8CwpR5n7mkjnvGdNyZJHZms0BJoYAXv5ezAq4-o
+
+@admin_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWdfbm8iOiJBRE0wMDEiLCJuYW1lIjoiQURNMDAxIiwiaWQiOiIxNWY4Mjk0MS0zNDBmLTQ1ODktOWNiYy01OTg5NDQ1MjFlNDUiLCJyb2xlIjoidm90ZXIiLCJpYXQiOjE3NjM1NTEzMDcsImV4cCI6MTc2MzU1NDkwN30.InBLKX2sTku0cBsjF1YZkSYUyQvXzlSTAfZxBAJNSaI
+### ----------------------------
+### REGISTER STUDENT
+### ----------------------------
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "reg_no": "SC/COM/0009/22"
+ // leave empty to auto-use reg_no as password
+}
+
+### ----------------------------
+### LOGIN STUDENT
+### ----------------------------
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "reg_no": "SC/COM/0009/22",
+  "password": "SC/COM/0009/22"
+}
+
+### ----------------------------
+### COMPLETE PROFILE (FIRST LOGIN)
+### ----------------------------
+PUT http://localhost:5000/api/auth/complete-profile/SC%2FCOM%2F0009%2F22
+Content-Type: application/json
+Authorization: Bearer {{student_token}}
+
+{
+  "name": "John Doe",
+  "school": "Science",
+  "expected_graduation": "12/2025"
+}
+
+### ----------------------------
+### UPDATE PASSWORD
+### ----------------------------
+PUT http://localhost:5000/api/auth/update-password/SC/COM/0008/22
+Content-Type: application/json
+Authorization: Bearer {{student_token}}
+
+{
+  "password": "newSecurePassword123"
+}
+
+### ----------------------------
+### LOGIN ADMIN
+### ----------------------------
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "reg_no": "ADM001",
+  "password": "AdminPass123"
+}
+
+### ----------------------------
+### UPDATE STUDENT GRADUATION STATUS (ADMIN OR DEAN)
+### ----------------------------
+PUT http://localhost:5000/api/graduation/update/SC%2FCOM%2F0009%2F22
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "graduation_status": "graduated"
+}

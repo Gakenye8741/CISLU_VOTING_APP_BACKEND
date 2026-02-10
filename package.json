@@ -1,0 +1,51 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch ./src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "gen": "drizzle-kit generate",
+    "migrate": "tsx src/drizzle/migrate.ts",
+    "studio": "drizzle-kit studio",
+    "push": "drizzle-kit generate && drizzle-kit push",
+    "seed": "tsx src/drizzle/seed.ts",
+    "postinstall": "tsc"
+  },
+  "keywords": [],
+  "author": "Gakenye Ndiritu  || Mwangaza || Enock ||  ",
+  "license": "ISC",
+  "packageManager": "pnpm@10.22.0",
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.1",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "drizzle-kit": "^0.31.1",
+    "drizzle-orm": "^0.43.1",
+    "ethers": "^6.15.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.3",
+    "pg": "^8.16.0",
+    "rate-limiter-flexible": "^7.1.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
+    "zod": "^3.25.56"
+  },
+  "devDependencies": {
+    "@types/cors": "2.8.19",
+    "@types/express": "^5.0.2",
+    "@types/helmet": "^4.0.0",
+    "@types/node": "^22.15.21",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.15.2",
+    "express": "^5.1.0",
+    "typescript": "^5.8.3"
+  }
+}

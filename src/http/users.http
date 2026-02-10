@@ -1,0 +1,92 @@
+### Variables
+@baseUrl = http://localhost:5000/api
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MDM3MzY0MiwiZXhwIjoxNzcwNDYwMDQyfQ.r90t5qmzJiVAGLBrwTw_btMej6ATYIf4N6vPjv80d6c
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkwNzgzYzVmLTkyMzktNDdlZi1iZDA2LTkxNjk0ZDg3NzQ1YiIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJHYWtlbnllIE5kaXJpdHUiLCJyb2xlIjoibWVtYmVyIiwieWVhck9mU3R1ZHkiOiI0IiwiaWF0IjoxNzY5ODExNDQyLCJleHAiOjE3Njk4OTc4NDJ9.hBRC4qb2GMiPCxTOjzWEnAIc1fnS9W5l2cBg4xRjXyk
+@targetUserId = 1e914f38-acf5-49fa-ad2d-910836ceada2
+@targetEmail = brayogakenye04@gmail.com
+
+### --------------------------------------------------------------
+### 1. ACCOUNT RECOVERY (Public - No Token Required)
+### --------------------------------------------------------------
+
+### Request Unlock Code
+# Call this after 3 failed login attempts
+POST {{baseUrl}}/users/request-unlock
+Content-Type: application/json
+
+{
+  "email": "{{targetEmail}}"
+}
+
+### Resend Unlock Code
+# Will fail with 429 if called within 60 seconds of the last request
+POST {{baseUrl}}/users/resend-unlock
+Content-Type: application/json
+
+{
+  "email": "{{targetEmail}}"
+}
+
+### Verify Code and Unlock
+# Use the 6-digit code received in your email
+POST {{baseUrl}}/users/verify-unlock
+Content-Type: application/json
+
+{
+  "email": "{{targetEmail}}",
+  "code": "596742"
+}
+
+### --------------------------------------------------------------
+### 2. PROFILE & ELIGIBILITY (Authenticated)
+### --------------------------------------------------------------
+
+### Get Current Logged-in Profile
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{studentToken}}
+
+### Check Eligibility for a Position
+GET {{baseUrl}}/users/eligible/{{targetUserId}}?requiredPoints=50
+Authorization: Bearer {{studentToken}}
+
+
+### --------------------------------------------------------------
+### 3. ADMIN MANAGEMENT (Admin Only)
+### --------------------------------------------------------------
+
+### List All Users (Paginated)
+GET {{baseUrl}}/users?limit=10&offset=0
+Authorization: Bearer {{adminToken}}
+
+### Update Account Status
+PATCH {{baseUrl}}/users/status/{{targetUserId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "isActive": true,
+  "isGoodStanding": true
+}
+
+### Manage Participation Points
+PATCH {{baseUrl}}/users/points/{{targetUserId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "points": 100
+}
+
+### --------------------------------------------------------------
+### 4. SECURITY TESTING (Should Fail)
+### --------------------------------------------------------------
+
+### Unauthorized Points Update
+# Should return 403 Forbidden
+PATCH {{baseUrl}}/users/points/{{targetUserId}}
+Content-Type: application/json
+Authorization: Bearer {{studentToken}}
+
+{
+  "points": 5000
+}

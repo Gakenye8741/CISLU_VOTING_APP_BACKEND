@@ -1,0 +1,55 @@
+#
+@baseUrl = http://localhost:5000/api
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MDM3MzY0MiwiZXhwIjoxNzcwNDYwMDQyfQ.r90t5qmzJiVAGLBrwTw_btMej6ATYIf4N6vPjv80d6c
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFlOTE0ZjM4LWFjZjUtNDlmYS1hZDJkLTkxMDgzNmNlYWRhMiIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzI0IiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yNCIsInJvbGUiOiJtZW1iZXIiLCJ5ZWFyT2ZTdHVkeSI6IjEiLCJpYXQiOjE3NzAzNzM4MjEsImV4cCI6MTc3MDQ2MDIyMX0.xdbSj7carGvdvOExjTehCdha-ts2LsHa0ED4vESUYeA
+@electionId = 2ce3a830-0279-4a60-a1c8-e3a710b78c91
+@positionId = ce0d023e-81f2-42bf-ade5-52d430c1ffb2
+@targetAppId = cdaa7131-ee4b-4bed-9397-9c6e8abd6c23
+@candidateId = a5bba8be-c878-43a3-81eb-1ab2a1e30e61
+
+### --------------------------------------------------------------
+### 1. ADMIN: ELECTION BOARD OPERATIONS
+### --------------------------------------------------------------
+
+### Promote Approved Application
+# Scenario: Patron/Admin moves an 'approved' application to the final ballot.
+# The system will automatically assign the next available Ballot Number.
+POST {{baseUrl}}/candidates/promote/{{targetAppId}}
+Authorization: Bearer {{adminToken}}
+
+
+### --------------------------------------------------------------
+### 2. VOTER: BALLOT DISCOVERY
+### --------------------------------------------------------------
+
+### Fetch Entire Club Ballot
+# Used by club members to see the full list of candidates for all positions.
+GET {{baseUrl}}/candidates/election/{{electionId}}
+Authorization: Bearer {{studentToken}}
+
+### Fetch Ballot by Specific Position
+# Scenario: The student is in the 'Voting Booth' for the "Secretary" role.
+# Returns candidates sorted by ballotNumber (1, 2, 3...).
+GET {{baseUrl}}/candidates/election/{{electionId}}/position/{{positionId}}
+Authorization: Bearer {{studentToken}}
+
+### View Candidate Detailed Profile
+# Get the full manifesto and image before casting a vote.
+GET {{baseUrl}}/candidates/{{candidateId}}
+Authorization: Bearer {{studentToken}}
+
+
+### --------------------------------------------------------------
+### 3. DISCIPLINARY: BALLOT CLEAN-UP
+### --------------------------------------------------------------
+
+### Disqualify Candidate (Disciplinary)
+# Scenario: A candidate is found to have falsified their club attendance.
+# Logic: Removes them from ballot and shifts others up (e.g., #3 becomes #2).
+PATCH {{baseUrl}}/candidates/{{candidateId}}/disqualify
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "reason": "Disciplinary Board Ruling: Candidate failed to maintain the required 2.5 GPA club constitutional requirement."
+}

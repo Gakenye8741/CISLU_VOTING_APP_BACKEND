@@ -1,0 +1,86 @@
+### Variables
+@baseUrl = http://localhost:5000/api
+
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJmMzEwMGEzLTc2N2YtNGNlYi1hZTlhLTdjYTkxNDU1OGVlNyIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIzIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMyIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc2OTgwNzgxMSwiZXhwIjoxNzY5ODk0MjExfQ.Vm-ozK3epv3TcHfuLZFfrxvBf9WGdjTw6ee0kS6yFTE
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkwNzgzYzVmLTkyMzktNDdlZi1iZDA2LTkxNjk0ZDg3NzQ1YiIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJHYWtlbnllIE5kaXJpdHUiLCJyb2xlIjoibWVtYmVyIiwieWVhck9mU3R1ZHkiOiI0IiwiaWF0IjoxNzY5ODA5MDIzLCJleHAiOjE3Njk4OTU0MjN9.E8P8EowRqNVm3UEUaGaxwVlFtE3s_ed7dPP9gT7pwZk
+@electionId = e0374c3a-049f-4a49-96e3-a610ca8efece
+@positionId = b745993e-579f-48d2-97af-5c33bdaf6fe8
+@targetAppId = 862039b4-149e-4d9c-8db7-3a078dcc0e28
+@candidateId = a5bba8be-c878-43a3-81eb-1ab2a1e30e61
+
+### ---------------------------------------------------------
+### 1. CAST A VOTE (Student Role)
+### ---------------------------------------------------------
+# This endpoint uses the JWT to identify the voter and their year group
+POST {{baseUrl}}/votes/cast
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "electionId": "{{electionId}}",
+  "positionId": "{{positionId}}",
+  "candidateId": "{{candidateId}}"
+}
+
+### ---------------------------------------------------------
+### 2. VIEW LIVE POSITION RESULTS (Student/Public)
+### ---------------------------------------------------------
+# Gets the leaderboard for a specific role (e.g., Chairperson)
+GET {{baseUrl}}/votes/results/position/{{positionId}}
+Authorization: Bearer {{authToken}}
+
+### ---------------------------------------------------------
+### 3. GET FULL ELECTION ANALYTICS (Admin Only)
+### ---------------------------------------------------------
+# Returns turnout, demographic breakdown, and the audit trail of receipts
+GET {{baseUrl}}/votes/analytics/election/{{electionId}}
+Authorization: Bearer {{authToken}}
+
+### ---------------------------------------------------------
+### 4. GET CANDIDATE PERFORMANCE SCORECARD (Admin Only)
+### ---------------------------------------------------------
+# Returns detailed stats for a specific candidate's performance
+GET {{baseUrl}}/votes/analytics/candidate/{{candidateId}}
+Authorization: Bearer {{authToken}}
+
+### 🔍 VERIFY VOTE VIA RECEIPT
+# Use the receipt returned from the /cast endpoint
+POST {{baseUrl}}/votes/verify
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "receipt": "VR-5173A1-1769818477100"
+}
+
+### ---------------------------------------------------------
+### 🚀 NEW: BULK BALLOT SUBMISSION
+### ---------------------------------------------------------
+# Vote for multiple positions in a single transaction
+POST {{baseUrl}}/votes/bulk
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "electionId": "{{electionId}}",
+  "selections": [
+    {
+      "positionId": "{{positionId}}",
+      "candidateId": "{{candidateId}}"
+    }
+  ]
+}
+
+### ---------------------------------------------------------
+### ✅ NEW: MY VOTING PROGRESS
+### ---------------------------------------------------------
+# Returns an array of position IDs the user has already voted for
+GET {{baseUrl}}/votes/progress/{{electionId}}
+Authorization: Bearer {{authToken}}
+
+### ---------------------------------------------------------
+### 🏆 NEW: OFFICIAL ELECTION WINNERS (Admin)
+### ---------------------------------------------------------
+# Final ranking of candidates and margin of victory per position
+GET {{baseUrl}}/votes/winners/{{electionId}}
+Authorization: Bearer {{authToken}}

@@ -1,0 +1,93 @@
+
+@baseUrl = http://localhost:5000/api/auth
+@token = YOUR_JWT_TOKEN_HERE
+@regNo = SC/COM/0008/22
+@email = codewithgakenye@gmail.com
+
+@StudentregNo = SC/COM/0008/24
+@Studentemail = programminggakenye@gmail.com
+
+### 1. Register a new admin
+# If password is omitted, it defaults to the studentRegNo
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "studentRegNo": "{{regNo}}",
+  "email": "{{email}}",
+  "role": "admin"
+}
+
+## 1. Register a new student
+# If password is omitted, it defaults to the studentRegNo
+###
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "studentRegNo": "{{StudentregNo}}",
+  "email": "{{Studentemail}}",
+  "role": "member"
+}
+
+### 2. Login
+# This will return a token and 'requireProfileCompletion' status
+
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "studentRegNo": "{{StudentregNo}}",
+  "password": "{{StudentregNo}}"
+}
+
+### 3. Forgot Password
+# This triggers the professional email with the Reset Button
+POST {{baseUrl}}/forgot-password
+Content-Type: application/json
+
+{
+  "studentRegNo": "{{regNo}}",
+  "email": "{{email}}"
+}
+
+### 4. Reset Password
+# 'token' comes from the email link query parameter (?token=...)
+POST {{baseUrl}}/reset-password
+Content-Type: application/json
+
+{
+  "token": "PASTE_TOKEN_FROM_EMAIL_HERE",
+  "newPassword": "NewSecurePassword456"
+}
+
+### --------------------------------------------------------------
+### Protected Routes (Requires @token to be set above)
+### --------------------------------------------------------------
+
+### 5. Complete Profile
+# Used after first login to update full details
+PUT {{baseUrl}}/complete-profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "studentRegNo": "{{regNo}}",
+  "fullName": "John Doe",
+  "yearOfStudy": 3,
+  "email": "{{email}}"
+}
+
+### 6. Update Password (Authenticated)
+# Changes password for the currently logged-in user
+PUT {{baseUrl}}/update-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "password": "AnotherNewPassword789"
+}
+
+### 7. Get User by Registration Number
+GET {{baseUrl}}/user/by-reg-no?studentRegNo={{regNo}}
+Authorization: Bearer {{token}}

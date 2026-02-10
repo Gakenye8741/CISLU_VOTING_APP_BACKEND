@@ -1,0 +1,54 @@
+### Variables
+@baseUrl = http://localhost:5000/api
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MDM3MzY0MiwiZXhwIjoxNzcwNDYwMDQyfQ.r90t5qmzJiVAGLBrwTw_btMej6ATYIf4N6vPjv80d6c
+@electionId = 2ce3a830-0279-4a60-a1c8-e3a710b78c91
+
+### 1. Create a New Election (Admin Only)
+POST {{baseUrl}}/elections
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "title": "Student Council Elections 2026",
+  "description": "Annual voting for the main student body representatives.",
+  "startDate": "2026-02-11T08:00:00Z",
+  "endDate": "2026-02-15T17:00:00Z",
+  "status": "upcoming"
+}
+
+### 2. Get All Elections (Any Authenticated User)
+GET {{baseUrl}}/elections
+Authorization: Bearer {{adminToken}}
+
+### 3. Filter Elections by Status
+# Options: upcoming, voting, completed, cancelled
+GET {{baseUrl}}/elections/filter?status=upcoming
+Authorization: Bearer {{adminToken}}
+
+### 4. Get Election by ID
+GET {{baseUrl}}/elections/{{electionId}}
+Authorization: Bearer {{adminToken}}
+
+### 5. Update Election (Admin Only)
+# Note: You can send partial data
+PUT {{baseUrl}}/elections/{{electionId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "title": "UPDATED: Student Council Elections 2026",
+  "description": "Revised schedule for the main student body representatives."
+}
+
+### 6. Change Election Status Manually (Admin Only)
+PATCH {{baseUrl}}/elections/{{electionId}}/status
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "status": "voting"
+}
+
+### 7. Delete Election (Admin Only)
+DELETE {{baseUrl}}/elections/{{electionId}}
+Authorization: Bearer {{adminToken}}
