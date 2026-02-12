@@ -1,6 +1,6 @@
 import db from "../drizzle/db";
 import { eq, and } from "drizzle-orm";
-import { roleEnum, users, User, yearEnum } from "../drizzle/schema";
+import { roleEnum, users, TselectUser,TinsertUser, yearEnum } from "../drizzle/schema";
 
 // ================================
 // Register a new student
@@ -10,7 +10,7 @@ export const registerUserService = async (
   email: string, // Now accepting email from controller
   password: string, // Hashed password passed from controller
   role?: typeof roleEnum.enumValues[number]
-): Promise<User> => {
+): Promise<TinsertUser> => {
   const newRole = role || "member";
 
   const [newUser] = await db.insert(users)
@@ -38,7 +38,7 @@ export const registerUserService = async (
 export const loginUserService = async (
   studentRegNo: string,
   password: string // Plain password for comparison
-): Promise<User> => {
+): Promise<TselectUser> => {
   const user = await db.query.users.findFirst({
     where: eq(users.studentRegNo, studentRegNo),
   });
@@ -66,7 +66,7 @@ export const completeStudentProfileService = async (
   fullName: string,
   yearOfStudy: typeof yearEnum.enumValues[number],
   email: string
-): Promise<User> => {
+): Promise<TinsertUser> => {
   const [updatedUser] = await db.update(users)
     .set({
       fullName,
@@ -126,7 +126,7 @@ export const resetPasswordService = async (
 // ================================
 export const getUserByRegNoService = async (
   studentRegNo: string
-): Promise<User | undefined> => {
+): Promise<TselectUser | undefined> => {
   return db.query.users.findFirst({
     where: eq(users.studentRegNo, studentRegNo),
   });
