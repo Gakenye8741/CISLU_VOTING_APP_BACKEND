@@ -8,6 +8,22 @@ import {
 import { checkCandidateEligibilityService } from "../users/users.service";
 
 
+// Get applications for the logged-in student
+export const getMyApplicationsService = async (userId: string) => {
+  return await db.query.candidateApplications.findMany({
+    where: (apps, { eq }) => eq(apps.userId, userId),
+
+    with: {
+      election: true,
+      position: true,
+    },
+
+    orderBy: (apps, { desc }) => [desc(apps.createdAt)],
+  });
+};
+
+
+
 // ---------------------------------------------------------
 // 1. CREATE (Submit Application)
 // ---------------------------------------------------------

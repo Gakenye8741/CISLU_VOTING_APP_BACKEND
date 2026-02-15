@@ -11,6 +11,22 @@ import {
   updateManifestoService, 
   withdrawApplicationService 
 } from "./candidateApplications.service";
+import { getMyApplicationsService } from "../Applications/candidateApplications.service";
+import { Request, Response } from "express";
+
+// Add this controller function
+export const getMyApplications: RequestHandler = async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    
+    const applications = await getMyApplicationsService(userId);
+
+    res.status(200).json({ applications });
+  } catch (error: any) {
+    console.error("Error fetching my applications:", error);
+    res.status(500).json({ error: "Failed to fetch applications" });
+  }
+};
 
 // ---------------------------------------------------------
 // 1. CREATE: Submit Application

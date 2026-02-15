@@ -6,6 +6,7 @@ import {
   reviewApplication,           // update status (Admin)
   updateMyApplication,         // update content (Student)
   withdrawApplication,          // delete (Student/Admin)
+  getMyApplications,           // 
 } from "./candidateApplications.controller";
 import { adminAuth, anyAuthenticatedUser } from "../../middlewares/bearAuth";
 
@@ -17,6 +18,9 @@ const CandidateApplicationsRouter = Router();
 
 // Submit a new application
 CandidateApplicationsRouter.post("/", anyAuthenticatedUser, applyForPosition);
+
+// Get my own applications ✅ ADD THIS LINE
+CandidateApplicationsRouter.get("/my", anyAuthenticatedUser, getMyApplications);
 
 // Edit own application (Only if still 'pending')
 CandidateApplicationsRouter.patch("/:id", anyAuthenticatedUser, updateMyApplication);
