@@ -9,8 +9,9 @@ import {
   requestUnlock,    
   resendUnlock,     
   verifyAndUnlock,
-  adminUpdateUser,    // New: Full Admin override
-  deleteUserAccount,  // New: Self or Admin deletion
+  adminUpdateUser,
+  deleteUserAccount,
+  changeUserRole, // New: Role management controller
 } from "./users.controller";
 import { adminAuth, anyAuthenticatedUser } from "../../middlewares/bearAuth";
 
@@ -51,6 +52,9 @@ UsersRouter.get("/", adminAuth, listAllUsers);
 
 // Full user update (Admin only - includes password/email/regNo)
 UsersRouter.put("/admin-update/:id", adminAuth, adminUpdateUser);
+
+// Update User Role (Promote/Demote - Admin only)
+UsersRouter.patch("/role/:id", adminAuth, changeUserRole);
 
 // Update account status (Ban/Unban or Good Standing)
 UsersRouter.patch("/status/:id", adminAuth, updateStatus);

@@ -9,8 +9,9 @@ import {
   resendUnlockCodeService,
   verifyUnlockCodeService,
   updateUserProfileService,
-  adminUpdateUserService, // New Import
-  deleteUserService       // New Import
+  adminUpdateUserService,
+  deleteUserService,
+  updateUserRoleService // New Import for Role Management
 } from "./users.service";
 import { sendNotificationEmail } from "../../middlewares/GoogleMAiler";
 
@@ -127,7 +128,7 @@ export const listAllUsers: RequestHandler = async (req, res) => {
 };
 
 // ---------------------------------------------------------
-// 3. UPDATE USER STATUS (Admin - Ban/Standing)
+// 3. UPDATE USER STATUS (Admin - Ban/Standing/Role)
 // ---------------------------------------------------------
 export const updateStatus: RequestHandler = async (req, res) => {
   try {
@@ -143,6 +144,39 @@ export const updateStatus: RequestHandler = async (req, res) => {
     if (!updatedUser) return res.status(404).json({ error: "User not found" });
 
     res.status(200).json({ message: "User status updated", user: updatedUser });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Admin: Change User Role (Promote/Demote)
+ */
+
+export const changeUserRole: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let { role } = req.body;
+
+    // Strict validation to match your existing pgEnum
+    if (role === 'voter') {
+       // If your schema only allows member/admin, map voter to member
+       role = 'member'; 
+    }
+
+    if (!['admin', 'member'].includes(role)) {
+      return res.status(400).json({ error: "Database only accepts 'admin' or 'member' roles." });
+    }
+
+    const updatedUser = await updateUserRoleService(id, role);
+    
+    if (!updatedUser) return res.status(404).json({ error: "User not found" });
+
+    const { password, ...safeUser } = updatedUser;
+    res.status(200).json({ 
+      message: `Role synchronized to ${role}`, 
+      user: safeUser 
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

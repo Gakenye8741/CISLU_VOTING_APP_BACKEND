@@ -183,6 +183,19 @@ export const resendUnlockCodeService = async (email: string) => {
 // 4. ELIGIBILITY & MANAGEMENT
 // ---------------------------------------------------------
 
+/**
+ * Update User Role
+ * Promotes or demotes users (e.g., between 'member' and 'admin')
+ */
+export const updateUserRoleService = async (id: string, role:  "admin" | "member"): Promise<TselectUser | null> => {
+  const [updated] = await db.update(users)
+    .set({ role })
+    .where(eq(users.id, id))
+    .returning();
+    
+  return updated ?? null;
+};
+
 export const checkCandidateEligibilityService = async (userId: string, requiredPoints: number) => {
   const user = await getUserByIdService(userId);
   if (!user) return { eligible: false, reason: "User not found" };

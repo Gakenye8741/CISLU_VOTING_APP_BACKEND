@@ -2,7 +2,7 @@
 @baseUrl = http://localhost:5000/api/auth
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MTIyNzgxNCwiZXhwIjoxNzcxMzE0MjE0fQ.uahSr1cnSD5xnp1SMjCB-jh8CBRpz_0AY87WOG-oAOk
 
-@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFlOTE0ZjM4LWFjZjUtNDlmYS1hZDJkLTkxMDgzNmNlYWRhMiIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzI0IiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yNCIsInJvbGUiOiJtZW1iZXIiLCJ5ZWFyT2ZTdHVkeSI6IjEiLCJpYXQiOjE3NzEyMjg5NzIsImV4cCI6MTc3MTMxNTM3Mn0.zLto9JnHuDzNMX0NcQlO_ELKGNLLMSoMorsY5u0_xiI
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc2MGFlM2NjLWYxZTEtNDRlNC05OTUxLTE3NWFkNWY5ZmIxYSIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzI2IiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yNiIsInJvbGUiOiJtZW1iZXIiLCJ5ZWFyT2ZTdHVkeSI6IjEiLCJlbWFpbCI6ImJyYXlvZ2FrZW55ZTA0QGdtYWlsLmNvbSIsImlhdCI6MTc3MTIzMzk0MywiZXhwIjoxNzcxMzIwMzQzfQ.J_ZUE_X0ZzxyzsQlOawxBt-KPTObMtPzfxed0ezNCCE
 @regNo = SC/COM/0008/22
 @email = codewithgakenye@gmail.com
 
@@ -74,10 +74,11 @@ Authorization: Bearer {{studentToken}}
 Content-Type: application/json
 
 {
-  "studentRegNo": "{{regNo}}",
-  "fullName": "John Doe",
+  "studentRegNo": "{{StudentregNo}}",
+  "fullName": "John1 Doe",
   "yearOfStudy": "3",
-  "email": "{{email}}"
+  "email": "{{Studentemail}}",
+  "role":"admin"
 }
 
 ### 6. Update Password (Authenticated)
