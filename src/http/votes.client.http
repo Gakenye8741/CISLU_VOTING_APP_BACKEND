@@ -1,12 +1,12 @@
 ### Variables
 @baseUrl = http://localhost:5000/api
 
-@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJmMzEwMGEzLTc2N2YtNGNlYi1hZTlhLTdjYTkxNDU1OGVlNyIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIzIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMyIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc2OTgwNzgxMSwiZXhwIjoxNzY5ODk0MjExfQ.Vm-ozK3epv3TcHfuLZFfrxvBf9WGdjTw6ee0kS6yFTE
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MTE0MTIxNSwiZXhwIjoxNzcxMjI3NjE1fQ.NZB0KlF1H5oifBwBIwBz7gSbDT9YS0R-mndYP-sXy8o
 @studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkwNzgzYzVmLTkyMzktNDdlZi1iZDA2LTkxNjk0ZDg3NzQ1YiIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJHYWtlbnllIE5kaXJpdHUiLCJyb2xlIjoibWVtYmVyIiwieWVhck9mU3R1ZHkiOiI0IiwiaWF0IjoxNzY5ODA5MDIzLCJleHAiOjE3Njk4OTU0MjN9.E8P8EowRqNVm3UEUaGaxwVlFtE3s_ed7dPP9gT7pwZk
-@electionId = e0374c3a-049f-4a49-96e3-a610ca8efece
-@positionId = b745993e-579f-48d2-97af-5c33bdaf6fe8
+@electionId = d2892e77-12df-45fd-b2f2-af71b93da55c
+@positionId = 3ba4f1ab-c34f-4637-94d4-8af16dd4466c
 @targetAppId = 862039b4-149e-4d9c-8db7-3a078dcc0e28
-@candidateId = a5bba8be-c878-43a3-81eb-1ab2a1e30e61
+@candidateId = 87b7f88e-ce05-4384-9118-59b33589d6ea
 
 ### ---------------------------------------------------------
 ### 1. CAST A VOTE (Student Role)
