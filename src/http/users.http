@@ -1,6 +1,6 @@
 ### Variables
 @baseUrl = http://localhost:5000/api
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MDM3MzY0MiwiZXhwIjoxNzcwNDYwMDQyfQ.r90t5qmzJiVAGLBrwTw_btMej6ATYIf4N6vPjv80d6c
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MTIyNzgxNCwiZXhwIjoxNzcxMzE0MjE0fQ.uahSr1cnSD5xnp1SMjCB-jh8CBRpz_0AY87WOG-oAOk
 @studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjkwNzgzYzVmLTkyMzktNDdlZi1iZDA2LTkxNjk0ZDg3NzQ1YiIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJHYWtlbnllIE5kaXJpdHUiLCJyb2xlIjoibWVtYmVyIiwieWVhck9mU3R1ZHkiOiI0IiwiaWF0IjoxNzY5ODExNDQyLCJleHAiOjE3Njk4OTc4NDJ9.hBRC4qb2GMiPCxTOjzWEnAIc1fnS9W5l2cBg4xRjXyk
 @targetUserId = 1e914f38-acf5-49fa-ad2d-910836ceada2
 @targetEmail = brayogakenye04@gmail.com
@@ -43,7 +43,7 @@ Content-Type: application/json
 
 ### Get Current Logged-in Profile
 GET {{baseUrl}}/users/me
-Authorization: Bearer {{studentToken}}
+Authorization: Bearer {{adminToken}}
 
 ### Check Eligibility for a Position
 GET {{baseUrl}}/users/eligible/{{targetUserId}}?requiredPoints=50

@@ -1,7 +1,8 @@
 import { eq, sql, and, desc, gt } from "drizzle-orm";
 import db from "../../drizzle/db";
-import { users, TselectUser } from "../../drizzle/schema";
+import { users, TselectUser, TinsertUser } from "../../drizzle/schema";
 import crypto from "crypto";
+import bcrypt from "bcrypt"; // Ensure bcrypt is installed for password hashing
 
 // ---------------------------------------------------------
 // 1. CORE CRUD OPERATIONS
@@ -15,6 +16,60 @@ export const getUserByIdService = async (id: string): Promise<TselectUser | null
 export const getUserByRegNoService = async (regNo: string): Promise<TselectUser | null> => {
   const [user] = await db.select().from(users).where(eq(users.studentRegNo, regNo));
   return user ?? null;
+};
+
+/**
+ * Update User Profile (User Self-Service)
+ * Allows users to update their personal information (excluding password).
+ */
+export const updateUserProfileService = async (id: string, data: Partial<TinsertUser>): Promise<TselectUser | null> => {
+  const { fullName, email, yearOfStudy } = data;
+  
+  const [updated] = await db.update(users)
+    .set({ 
+      fullName, 
+      email, 
+      yearOfStudy 
+    })
+    .where(eq(users.id, id))
+    .returning();
+    
+  return updated ?? null;
+};
+
+/**
+ * Admin Update User Details
+ * Full override capability including password updates.
+ */
+export const adminUpdateUserService = async (id: string, data: Partial<TinsertUser>): Promise<TselectUser | null> => {
+  const updateData: any = {
+    fullName: data.fullName,
+    email: data.email,
+    yearOfStudy: data.yearOfStudy,
+    studentRegNo: data.studentRegNo,
+  };
+
+  // Only hash and update password if provided by admin
+  if (data.password) {
+    updateData.password = await bcrypt.hash(data.password, 10);
+  }
+
+  const [updated] = await db.update(users)
+    .set(updateData)
+    .where(eq(users.id, id))
+    .returning();
+
+  return updated ?? null;
+};
+
+/**
+ * Delete User Account
+ * Can be used by both User (self) and Admin.
+ */
+export const deleteUserService = async (id: string) => {
+  return await db.delete(users)
+    .where(eq(users.id, id))
+    .returning({ deletedId: users.id });
 };
 
 // ---------------------------------------------------------
@@ -127,6 +182,19 @@ export const resendUnlockCodeService = async (email: string) => {
 // ---------------------------------------------------------
 // 4. ELIGIBILITY & MANAGEMENT
 // ---------------------------------------------------------
+
+/**
+ * Update User Role
+ * Promotes or demotes users (e.g., between 'member' and 'admin')
+ */
+export const updateUserRoleService = async (id: string, role:  "admin" | "member"): Promise<TselectUser | null> => {
+  const [updated] = await db.update(users)
+    .set({ role })
+    .where(eq(users.id, id))
+    .returning();
+    
+  return updated ?? null;
+};
 
 export const checkCandidateEligibilityService = async (userId: string, requiredPoints: number) => {
   const user = await getUserByIdService(userId);

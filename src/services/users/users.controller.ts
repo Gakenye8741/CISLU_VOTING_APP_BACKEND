@@ -7,24 +7,106 @@ import {
   checkCandidateEligibilityService,
   generateUnlockCodeService,
   resendUnlockCodeService,
-  verifyUnlockCodeService
+  verifyUnlockCodeService,
+  updateUserProfileService,
+  adminUpdateUserService,
+  deleteUserService,
+  updateUserRoleService // New Import for Role Management
 } from "./users.service";
 import { sendNotificationEmail } from "../../middlewares/GoogleMAiler";
 
 // ---------------------------------------------------------
-// 1. GET PROFILE (Self)
+// 1. PROFILE MANAGEMENT (User & Admin)
 // ---------------------------------------------------------
+
 export const getMyProfile: RequestHandler = async (req, res) => {
   try {
-    const userId = req.user?.userId; // Set by verifyToken middleware
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized access" });
 
     const user = await getUserByIdService(userId);
     if (!user) return res.status(404).json({ error: "User profile not found" });
 
-    // Exclude sensitive security fields
     const { password, failedLoginAttempts, ...safeUser } = user;
     res.status(200).json(safeUser);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateProfile: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized access" });
+
+    const updatedUser = await updateUserProfileService(userId, req.body);
+    if (!updatedUser) return res.status(404).json({ error: "User not found" });
+
+    const { password, failedLoginAttempts, ...safeUser } = updatedUser;
+    res.status(200).json({ message: "Profile updated successfully", user: safeUser });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Admin: Update Full User Details
+ * Handles password hashing (via service) and email notification
+ */
+export const adminUpdateUser: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedUser = await adminUpdateUserService(id, req.body);
+
+    if (!updatedUser) return res.status(404).json({ error: "User not found" });
+
+    // Send notification if password was changed
+    if (req.body.password) {
+      await sendNotificationEmail(
+        updatedUser.email,
+        "Security Alert: Password Changed",
+        `<p>Hello ${updatedUser.fullName},</p><p>Your account password has been updated by an administrator. If you did not request this, please contact support immediately.</p>`,
+        undefined,
+        "password-update"
+      );
+    }
+
+    const { password, ...safeUser } = updatedUser;
+    res.status(200).json({ message: "User updated by admin successfully", user: safeUser });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Delete Account (Self or Admin)
+ */
+export const deleteUserAccount: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const requesterId = req.user?.userId;
+    const requesterRole = req.user?.role;
+
+    // Security: Only Admin or the owner can delete
+    if (requesterRole !== 'admin' && requesterId !== id) {
+      return res.status(403).json({ error: "Forbidden: You can only delete your own account" });
+    }
+
+    const userToDelete = await getUserByIdService(id);
+    if (!userToDelete) return res.status(404).json({ error: "User not found" });
+
+    const result = await deleteUserService(id);
+
+    // Send termination email
+    await sendNotificationEmail(
+      userToDelete.email,
+      "Account Deleted",
+      `<p>Goodbye ${userToDelete.fullName},</p><p>Your account has been successfully removed from our system.</p>`,
+      undefined,
+      "account-closure"
+    );
+
+    res.status(200).json({ message: "Account deleted successfully", id: result[0].deletedId });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -46,7 +128,7 @@ export const listAllUsers: RequestHandler = async (req, res) => {
 };
 
 // ---------------------------------------------------------
-// 3. UPDATE USER STATUS (Admin - Ban/Standing)
+// 3. UPDATE USER STATUS (Admin - Ban/Standing/Role)
 // ---------------------------------------------------------
 export const updateStatus: RequestHandler = async (req, res) => {
   try {
@@ -62,6 +144,39 @@ export const updateStatus: RequestHandler = async (req, res) => {
     if (!updatedUser) return res.status(404).json({ error: "User not found" });
 
     res.status(200).json({ message: "User status updated", user: updatedUser });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Admin: Change User Role (Promote/Demote)
+ */
+
+export const changeUserRole: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let { role } = req.body;
+
+    // Strict validation to match your existing pgEnum
+    if (role === 'voter') {
+       // If your schema only allows member/admin, map voter to member
+       role = 'member'; 
+    }
+
+    if (!['admin', 'member'].includes(role)) {
+      return res.status(400).json({ error: "Database only accepts 'admin' or 'member' roles." });
+    }
+
+    const updatedUser = await updateUserRoleService(id, role);
+    
+    if (!updatedUser) return res.status(404).json({ error: "User not found" });
+
+    const { password, ...safeUser } = updatedUser;
+    res.status(200).json({ 
+      message: `Role synchronized to ${role}`, 
+      user: safeUser 
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -115,7 +230,7 @@ export const verifyEligibility: RequestHandler = async (req, res) => {
 
 
 // ---------------------------------------------------------
-// 1. REQUEST UNLOCK CODE
+// 6. ACCOUNT UNLOCKING
 // ---------------------------------------------------------
 export const requestUnlock: RequestHandler = async (req, res) => {
   const { email } = req.body;
@@ -143,9 +258,6 @@ export const requestUnlock: RequestHandler = async (req, res) => {
   }
 };
 
-// ---------------------------------------------------------
-// 2. RESEND UNLOCK CODE
-// ---------------------------------------------------------
 export const resendUnlock: RequestHandler = async (req, res) => {
   const { email } = req.body;
 
@@ -166,15 +278,11 @@ export const resendUnlock: RequestHandler = async (req, res) => {
 
     res.status(200).json({ message: "A new code has been sent." });
   } catch (error: any) {
-    // Check for rate-limit error message from service
     const status = error.message.includes("wait") ? 429 : 500;
     res.status(status).json({ error: error.message });
   }
 };
 
-// ---------------------------------------------------------
-// 3. VERIFY AND UNLOCK
-// ---------------------------------------------------------
 export const verifyAndUnlock: RequestHandler = async (req, res) => {
   const { email, code } = req.body;
   if (!email || !code) return res.status(400).json({ error: "Email and code are required" });
@@ -186,7 +294,6 @@ export const verifyAndUnlock: RequestHandler = async (req, res) => {
       return res.status(400).json({ error: result.message });
     }
 
-    // Optional: Send a confirmation email that account is now safe
     await sendNotificationEmail(
       email, 
       "Account Restored", 
