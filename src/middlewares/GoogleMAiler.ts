@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-// 1. UPDATED: Added "unlock-code" to the union type
+// 1. UPDATED: Added "account-closure" to the union type
 type EmailType = 
   | "welcome" 
   | "credentials" 
@@ -11,7 +11,8 @@ type EmailType =
   | "vote-confirmation" 
   | "alert" 
   | "generic"
-  | "unlock-code"; 
+  | "unlock-code"
+  | "account-closure"; // Added for account deletion
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -34,7 +35,7 @@ export const sendNotificationEmail = async (
   type: EmailType = "generic"
 ): Promise<string> => {
   try {
-    // 2. UPDATED: Ensure Record type matches our union to prevent index errors
+    // 2. UPDATED: Added account-closure theme
     const themes: Record<EmailType, { color: string; icon: string; label: string }> = {
       welcome:           { color: "#003366", icon: "🎓", label: "WELCOME" },
       credentials:       { color: "#003366", icon: "🔐", label: "ACCESS KEYS" },
@@ -44,6 +45,7 @@ export const sendNotificationEmail = async (
       alert:             { color: "#DC2626", icon: "⚠️", label: "SECURITY ALERT" },
       generic:           { color: "#003366", icon: "📢", label: "NOTICE" },
       "unlock-code":     { color: "#7C3AED", icon: "🔑", label: "ACCOUNT UNLOCK" },
+      "account-closure": { color: "#4B5563", icon: "🚫", label: "ACCOUNT CLOSED" }, // Gray theme for deletion
     };
 
     const theme = themes[type] || themes.generic;
@@ -90,7 +92,7 @@ export const sendNotificationEmail = async (
               ${message}
             </div>
             <p style="margin-top: 25px; font-size: 13px; color: #6b7280;">
-              If you have any issues, please contact the department technical lead.
+              If you have any issues, please contact the technical team.
             </p>
           </div>
           <div class="footer">
