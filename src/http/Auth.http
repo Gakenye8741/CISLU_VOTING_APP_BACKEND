@@ -1,10 +1,12 @@
 
 @baseUrl = http://localhost:5000/api/auth
-@token = YOUR_JWT_TOKEN_HERE
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MTIyNzgxNCwiZXhwIjoxNzcxMzE0MjE0fQ.uahSr1cnSD5xnp1SMjCB-jh8CBRpz_0AY87WOG-oAOk
+
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFlOTE0ZjM4LWFjZjUtNDlmYS1hZDJkLTkxMDgzNmNlYWRhMiIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzI0IiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yNCIsInJvbGUiOiJtZW1iZXIiLCJ5ZWFyT2ZTdHVkeSI6IjEiLCJpYXQiOjE3NzEyMjg5NzIsImV4cCI6MTc3MTMxNTM3Mn0.zLto9JnHuDzNMX0NcQlO_ELKGNLLMSoMorsY5u0_xiI
 @regNo = SC/COM/0008/22
 @email = codewithgakenye@gmail.com
 
-@StudentregNo = SC/COM/0007/25
+@StudentregNo = SC/COM/0008/24
 @Studentemail = gakenyedesign1@gmail.com
 
 ### 1. Register a new admin
@@ -68,13 +70,13 @@ Content-Type: application/json
 ### 5. Complete Profile
 # Used after first login to update full details
 PUT {{baseUrl}}/complete-profile
-Authorization: Bearer {{token}}
+Authorization: Bearer {{studentToken}}
 Content-Type: application/json
 
 {
   "studentRegNo": "{{regNo}}",
   "fullName": "John Doe",
-  "yearOfStudy": 3,
+  "yearOfStudy": "3",
   "email": "{{email}}"
 }
 

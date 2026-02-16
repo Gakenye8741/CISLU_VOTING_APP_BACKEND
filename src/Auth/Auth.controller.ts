@@ -122,6 +122,7 @@ export const loginUser: RequestHandler = async (req, res) => {
       fullName: user.fullName,
       role: user.role,
       yearOfStudy: user.yearOfStudy,
+      email: user.email,
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "24h" });
