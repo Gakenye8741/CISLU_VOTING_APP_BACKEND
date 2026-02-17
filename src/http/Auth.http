@@ -3,11 +3,11 @@
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmYmIzY2U1LTVkMmItNGUwNS04YmMyLTUyZGY1YmEzZmFkZCIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzIyIiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yMiIsInJvbGUiOiJhZG1pbiIsInllYXJPZlN0dWR5IjoiMSIsImlhdCI6MTc3MTIyNzgxNCwiZXhwIjoxNzcxMzE0MjE0fQ.uahSr1cnSD5xnp1SMjCB-jh8CBRpz_0AY87WOG-oAOk
 
 @studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc2MGFlM2NjLWYxZTEtNDRlNC05OTUxLTE3NWFkNWY5ZmIxYSIsInN0dWRlbnRSZWdObyI6IlNDL0NPTS8wMDA4LzI2IiwiZnVsbE5hbWUiOiJTQy9DT00vMDAwOC8yNiIsInJvbGUiOiJtZW1iZXIiLCJ5ZWFyT2ZTdHVkeSI6IjEiLCJlbWFpbCI6ImJyYXlvZ2FrZW55ZTA0QGdtYWlsLmNvbSIsImlhdCI6MTc3MTIzMzk0MywiZXhwIjoxNzcxMzIwMzQzfQ.J_ZUE_X0ZzxyzsQlOawxBt-KPTObMtPzfxed0ezNCCE
-@regNo = SC/COM/0008/22
-@email = codewithgakenye@gmail.com
+@regNo =
+@email = 
 
-@StudentregNo = SC/COM/0008/26
-@Studentemail = brayogakenye04@gmail.com
+@StudentregNo = SC/COM/0001/22
+@Studentemail = wanjikukiruno@gmail.com
 
 ### 1. Register a new admin
 # If password is omitted, it defaults to the studentRegNo

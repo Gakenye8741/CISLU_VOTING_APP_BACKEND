@@ -75,7 +75,7 @@ export const loginUser: RequestHandler = async (req, res) => {
 
     const { studentRegNo, password } = parseResult.data;
 
-    // 1. Fetch user by RegNo only (don't check password yet)
+    // 1. Fetch user by RegNo only
     const user = await getUserByRegNoService(studentRegNo);
 
     if (!user) {
@@ -85,12 +85,11 @@ export const loginUser: RequestHandler = async (req, res) => {
     // 2. Check if account is already hard-locked
     if (user.isLocked) {
       return res.status(403).json({ 
-        // UPDATED MESSAGE
         error: "Account is locked due to 3 failed attempts. Please use the unlock link to generate a security code or contact Admin." 
       });
     }
 
-    // 3. Verify Password (using bcrypt)
+    // 3. Verify Password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -101,7 +100,6 @@ export const loginUser: RequestHandler = async (req, res) => {
       const attemptsLeft = 3 - (updatedUser?.failedLoginAttempts || 0);
 
       return res.status(401).json({ 
-        // UPDATED MESSAGE
         error: attemptsLeft <= 0 
           ? "Account has been locked. Click the unlock link to generate your security code." 
           : `Invalid password. ${attemptsLeft} attempts remaining.` 
@@ -116,6 +114,7 @@ export const loginUser: RequestHandler = async (req, res) => {
     // 6. Success Logic: Reset failed attempts and update timestamp
     await recordSuccessfulLoginService(user.id);
 
+    // Prepare payload for Token and Response
     const payload = {
       id: user.id,
       studentRegNo: user.studentRegNo,
@@ -127,11 +126,22 @@ export const loginUser: RequestHandler = async (req, res) => {
 
     const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "24h" });
 
+    // 7. UPDATED REDIRECT LOGIC
+    // Profile is considered incomplete if:
+    // - fullName is missing OR 
+    // - yearOfStudy is missing OR 
+    // - fullName is still the default (the studentRegNo)
+    const isProfileIncomplete = !(
+      user.fullName && 
+      user.yearOfStudy && 
+      user.fullName !== user.studentRegNo
+    );
+
     res.status(200).json({
       message: "Login successful",
       token,
       user: payload,
-      requireProfileCompletion: user.fullName === user.studentRegNo, 
+      requireProfileCompletion: isProfileIncomplete, 
     });
 
   } catch (error: any) {
