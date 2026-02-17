@@ -21,16 +21,32 @@ import { sendNotificationEmail } from "../../middlewares/GoogleMAiler";
 
 export const getMyProfile: RequestHandler = async (req, res) => {
   try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: "Unauthorized access" });
+    const userId =
+      (req as any).user?.userId || (req as any).user?.id;
 
+    if (!userId) {
+      return res.status(401).json({
+        error: "Unauthorized access - No ID in token",
+      });
+    }
+
+    // ✅ Fetch user from DB
     const user = await getUserByIdService(userId);
-    if (!user) return res.status(404).json({ error: "User profile not found" });
 
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // ✅ Remove sensitive fields
     const { password, failedLoginAttempts, ...safeUser } = user;
-    res.status(200).json(safeUser);
+
+    // ✅ SEND RESPONSE
+    return res.status(200).json(safeUser);
+
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({
+      error: error.message || "Failed to fetch profile",
+    });
   }
 };
 
@@ -208,23 +224,36 @@ export const addPoints: RequestHandler = async (req, res) => {
 // ---------------------------------------------------------
 // 5. CHECK CANDIDATE ELIGIBILITY (Internal/Public)
 // ---------------------------------------------------------
+// ---------------------------------------------------------
+// 5. CHECK CANDIDATE ELIGIBILITY (Internal/Public)
+// ---------------------------------------------------------
 export const verifyEligibility: RequestHandler = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { requiredPoints } = req.query;
 
-    const result = await checkCandidateEligibilityService(
-      userId, 
-      Number(requiredPoints) || 0
-    );
+    const user = await getUserByIdService(userId);
 
-    if (!result.eligible) {
-      return res.status(403).json(result);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    res.status(200).json(result);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    if (!user.isActive) {
+      return res.status(403).json({
+        eligible: false,
+        reason: "Account is inactive",
+        currentPoints: user.participationPoints,
+        requiredPoints: 0,
+      });
+    }
+
+    return res.status(200).json({
+      eligible: true,
+      reason: "Account is active",
+      currentPoints: user.participationPoints,
+      requiredPoints: 0,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
   }
 };
 

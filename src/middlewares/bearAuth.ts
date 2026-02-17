@@ -35,7 +35,7 @@ export const authMiddleware = (allowedRoles: string[] | "any" = "any") => {
     const token = authHeader?.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : null;
 
     if (!token) {
-      return res.status(401).json({ error: "Access denied. No token provided." });
+     return res.status(401).json({ error: "DEBUG: NO TOKEN PROVIDED" });
     }
 
     const decodedToken = await verifyToken(token, process.env.JWT_SECRET!);

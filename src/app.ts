@@ -2,8 +2,6 @@ import express, { Application,Response } from 'express';
 import dotenv from 'dotenv';
 import cors from "cors"
 import AuthRouter from './Auth/Auth.routes';
-
-import GraduationRouter from './services/graduation/graduation.routes';
 import UsersRouter from './services/users/users.routes';
 import ElectionRouter from './services/elections/elections.route';
 import PositionsRouter from './services/Positions/position.routes';
