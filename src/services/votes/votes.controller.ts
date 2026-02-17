@@ -18,7 +18,8 @@ import { castVoteSchema } from "../../validators/Vote.validator";
 
 /**
  * Casts a single vote. 
- * 'id' comes from the authenticated user context.
+ * Allows voting for different positions at different times.
+ * Service layer handles the check: "Has this user ID already voted for this Position ID?"
  */
 export const handleCastVote = async (req: Request, res: Response) => {
   try {
@@ -30,12 +31,16 @@ export const handleCastVote = async (req: Request, res: Response) => {
       voterYearGroup: (req as any).user.yearOfStudy, 
     };
 
+    // Validate payload against schema
     const validatedData = castVoteSchema.parse(payload);
+    
+    // Execute service logic
+    // Logic inside service: check unique(userId, positionId)
     const result = await castVoteService(validatedData);
 
     return res.status(201).json({
       success: true,
-      message: "Your ballot has been securely cast.",
+      message: "Your ballot for this position has been securely cast.",
       verificationReceipt: result.verificationReceipt,
       castAt: result.castAt
     });
@@ -44,17 +49,24 @@ export const handleCastVote = async (req: Request, res: Response) => {
     if (error instanceof ZodError) {
       return res.status(400).json({ error: "Validation Error", details: error.errors });
     }
-    if (error.message.includes("Security Violation")) {
+
+    // Handle Business Logic Errors (e.g., "Already voted for this position")
+    if (error.message.includes("Security Violation") || error.message.includes("already cast")) {
       return res.status(403).json({ error: error.message });
     }
-    console.error("Voting Error:", error);
-    return res.status(500).json({ error: "Internal Server Error during ballot submission." });
+
+    // Detailed logging for your "Internal Server Error" debugging
+    console.error("CRITICAL_VOTING_ERROR_NODE:", error.message);
+    
+    return res.status(500).json({ 
+      error: "Internal Server Error during ballot submission.",
+      debug: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
   }
 };
 
 /**
  * NEW: Handle Bulk Ballot Submission
- * Allows a student to vote for multiple positions at once.
  */
 export const handleCastBulkBallot = async (req: Request, res: Response) => {
   try {
@@ -70,6 +82,7 @@ export const handleCastBulkBallot = async (req: Request, res: Response) => {
 
     return res.status(201).json(result);
   } catch (error: any) {
+    console.error("BULK_VOTE_ERROR:", error.message);
     return res.status(400).json({ error: error.message });
   }
 };
@@ -97,7 +110,8 @@ export const handleVerifyVote = async (req: Request, res: Response) => {
 
 /**
  * NEW: Get User Progress
- * Identifies which positions this user has already engaged with.
+ * Essential for your "Vote for SG later" logic. 
+ * Frontend uses this to hide positions the user already voted for.
  */
 export const getMyVotingProgress = async (req: Request, res: Response) => {
   try {
@@ -115,9 +129,6 @@ export const getMyVotingProgress = async (req: Request, res: Response) => {
    3️⃣ ANALYTICS & RESULTS CONTROLLERS
 ========================================================= */
 
-/**
- * Public/Student view: Get leaderboard for a specific position.
- */
 export const getPositionResults = async (req: Request, res: Response) => {
   try {
     const { positionId } = req.params;
@@ -128,9 +139,6 @@ export const getPositionResults = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Admin view: Get full election turnout and demographics.
- */
 export const getElectionAnalytics = async (req: Request, res: Response) => {
   try {
     const { electionId } = req.params;
@@ -141,9 +149,6 @@ export const getElectionAnalytics = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Admin view: Get official winners and margin of victory.
- */
 export const getElectionWinners = async (req: Request, res: Response) => {
   try {
     const { electionId } = req.params;
@@ -154,9 +159,6 @@ export const getElectionWinners = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Detailed scorecard for a single candidate.
- */
 export const getCandidateStats = async (req: Request, res: Response) => {
   try {
     const { candidateId } = req.params;

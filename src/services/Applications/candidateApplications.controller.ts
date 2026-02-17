@@ -91,6 +91,8 @@ export const reviewApplication: RequestHandler = async (req, res) => {
     const adminId = (req as any).user.id; // From auth middleware
     const { id } = req.params;
 
+    // The reviewApplicationService should now contain the logic to 
+    // check if status === 'approved' and insert into the 'candidates' table
     const updated = await reviewApplicationService(
       id, 
       adminId, 
@@ -98,9 +100,15 @@ export const reviewApplication: RequestHandler = async (req, res) => {
       validation.data.adminRemarks
     );
 
-    res.status(200).json({ message: "Application status updated", updated });
+    res.status(200).json({ 
+      message: validation.data.status === 'approved' 
+        ? "Application approved and promoted to candidates list" 
+        : "Application status updated", 
+      updated 
+    });
   } catch (error: any) {
-    res.status(500).json({ error: "Failed to update application status" });
+    console.error("Review Error:", error);
+    res.status(500).json({ error: error.message || "Failed to update application status" });
   }
 };
 

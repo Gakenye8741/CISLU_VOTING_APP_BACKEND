@@ -9,9 +9,10 @@ import crypto from "crypto";
 
 /**
  * Casts a single vote within a transaction.
- * Generates an anonymous receipt for voter verification.
+ * UPDATED: Optimized to handle "Vote for different positions at different times"
  */
 export const castVoteService = async (voteData: TinsertVote): Promise<TselectVote> => {
+  // 1. Critical identification check
   if (!voteData.id || !voteData.positionId || !voteData.electionId) {
     throw new Error("Missing critical identifiers: voterId, positionId, and electionId are required.");
   }
@@ -19,7 +20,18 @@ export const castVoteService = async (voteData: TinsertVote): Promise<TselectVot
   return await db.transaction(async (tx) => {
     const vId = voteData.id as string;
     const pId = voteData.positionId as string;
+    const eId = voteData.electionId as string;
 
+    // 2. Check if the election is actually open for voting
+    const election = await tx.query.elections.findFirst({
+      where: eq(elections.id, eId)
+    });
+
+    if (!election || election.status !== 'voting') {
+      throw new Error("Security Violation: This election node is not accepting ballots at this time.");
+    }
+
+    // 3. THE RE-VOTE CHECK: Check if THIS user has already voted for THIS specific position
     const existing = await tx.query.votes.findFirst({
       where: and(
         eq(votes.id, vId),
@@ -28,17 +40,28 @@ export const castVoteService = async (voteData: TinsertVote): Promise<TselectVot
     });
 
     if (existing) {
-      throw new Error(`Security Violation: A ballot has already been cast for this position.`);
+      throw new Error(`Security Violation: You have already cast a ballot for the position of ${pId}.`);
     }
 
+    // 4. Generate unique anonymous receipt
     const receipt = `VR-${crypto.randomBytes(3).toString('hex').toUpperCase()}-${Date.now()}`;
 
+    // 5. Atomic Insert
     const [newVote] = await tx.insert(votes)
       .values({
-        ...voteData,
+        id: vId,
+        electionId: eId,
+        positionId: pId,
+        candidateId: voteData.candidateId,
+        voterYearGroup: voteData.voterYearGroup,
         verificationReceipt: receipt,
+        // castAt is handled by default sql.now() in schema
       })
       .returning();
+
+    if (!newVote) {
+        throw new Error("Failed to commit ballot to the registry.");
+    }
 
     return newVote;
   });
@@ -48,10 +71,6 @@ export const castVoteService = async (voteData: TinsertVote): Promise<TselectVot
    NEW: 🚀 BULK BALLOT SUBMISSION
 ========================================================= */
 
-/**
- * Allows a user to vote for multiple positions in a single action.
- * Uses an atomic transaction: all succeed or all fail.
- */
 export const castBulkBallotService = async (
   voterId: string,
   electionId: string,
@@ -59,7 +78,6 @@ export const castBulkBallotService = async (
   selections: { positionId: string; candidateId: string }[]
 ) => {
   return await db.transaction(async (tx) => {
-    // Check if election is active
     const election = await tx.query.elections.findFirst({
       where: eq(elections.id, electionId)
     });
@@ -71,12 +89,11 @@ export const castBulkBallotService = async (
     const receipts: string[] = [];
 
     for (const selection of selections) {
-      // Internal double-vote check
       const existing = await tx.query.votes.findFirst({
         where: and(eq(votes.id, voterId), eq(votes.positionId, selection.positionId)),
       });
 
-      if (existing) continue; // Skip if already voted for this specific role
+      if (existing) continue; 
 
       const receipt = `VR-${crypto.randomBytes(3).toString('hex').toUpperCase()}-${Date.now()}`;
       
@@ -92,7 +109,7 @@ export const castBulkBallotService = async (
       receipts.push(receipt);
     }
 
-    return { success: true, receipts };
+    return { success: receipts.length > 0, receipts, count: receipts.length };
   });
 };
 
@@ -213,13 +230,9 @@ export const verifyVoteByReceiptService = async (receipt: string) => {
 };
 
 /* =========================================================
-   NEW: 🏆 OFFICIAL RESULTS & WINNERS
+   6️⃣ OFFICIAL RESULTS & WINNERS
 ========================================================= */
 
-/**
- * Calculates winners for all positions in an election.
- * Detects ties and provides margins of victory.
- */
 export const getOfficialElectionWinners = async (electionId: string) => {
   const electionPositions = await db.query.positions.findMany({
     where: eq(positions.electionId, electionId),
@@ -245,13 +258,9 @@ export const getOfficialElectionWinners = async (electionId: string) => {
 };
 
 /* =========================================================
-   NEW: 🗳️ USER VOTING PROGRESS
+   7️⃣ USER VOTING PROGRESS
 ========================================================= */
 
-/**
- * Checks which positions a specific user has already voted for.
- * Useful for the UI to show "Voted" badges.
- */
 export const getUserVotedPositions = async (userId: string, electionId: string) => {
   const voted = await db.query.votes.findMany({
     where: and(eq(votes.id, userId), eq(votes.electionId, electionId)),

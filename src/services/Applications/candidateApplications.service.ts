@@ -1,7 +1,9 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import db from "../../drizzle/db";
 import { 
   candidateApplications, 
+  candidates, // Imported candidates table
+  users,      // Imported users table to fetch full name
   TselectCandidateApplication, 
   TinsertCandidateApplication 
 } from "../../drizzle/schema";
@@ -94,23 +96,74 @@ export const getApplicationByIdService = async (id: string) => {
 
 /**
  * Update Status (Admin Scrutiny Action)
+ * Includes automatic promotion to candidates table on 'approved' status
+ * and automatic deletion from candidates table if status changes from approved to something else.
  */
 export const reviewApplicationService = async (
   applicationId: string,
   adminId: string,
-  status: TselectCandidateApplication['status'], // Uses the inferred enum type
+  status: TselectCandidateApplication['status'],
   remarks: string
 ) => {
-  await db.update(candidateApplications)
-    .set({
-      status,
-      adminRemarks: remarks,
-      reviewedBy: adminId,
-      reviewedAt: new Date()
-    })
-    .where(eq(candidateApplications.id, applicationId));
+  return await db.transaction(async (tx) => {
+    // 1. Update the application status
+    const [updatedApp] = await tx.update(candidateApplications)
+      .set({
+        status,
+        adminRemarks: remarks,
+        reviewedBy: adminId,
+        reviewedAt: new Date()
+      })
+      .where(eq(candidateApplications.id, applicationId))
+      .returning();
 
-  return await getApplicationByIdService(applicationId);
+    // 2. Promotion / Demotion Logic
+    if (status === 'approved') {
+      // --- AUTO-PROMOTION ---
+      const userRecord = await tx.query.users.findFirst({
+        where: eq(users.id, updatedApp.userId),
+      });
+
+      const existingCandidate = await tx.query.candidates.findFirst({
+        where: and(
+          eq(candidates.electionId, updatedApp.electionId),
+          eq(candidates.userId, updatedApp.userId)
+        )
+      });
+
+      if (!existingCandidate) {
+        // Logic: Calculate the next ballot number for this specific position in this election
+        const currentCount = await tx
+          .select({ count: sql<number>`count(*)` })
+          .from(candidates)
+          .where(and(
+            eq(candidates.electionId, updatedApp.electionId),
+            eq(candidates.positionId, updatedApp.positionId)
+          ));
+
+        const nextBallotNumber = Number(currentCount[0].count) + 1;
+
+        await tx.insert(candidates).values({
+          electionId: updatedApp.electionId,
+          positionId: updatedApp.positionId,
+          userId: updatedApp.userId,
+          applicationId: updatedApp.id,
+          fullName: userRecord?.fullName || "Unknown Candidate",
+          manifesto: updatedApp.manifesto,
+          imageUrl: updatedApp.imageUrl,
+          ballotNumber: nextBallotNumber,
+        });
+      }
+    } else {
+      // --- AUTO-DELETION ---
+      // If the admin changes an approved application to 'rejected' or 'pending', 
+      // the candidate is removed from the voting ballot automatically.
+      await tx.delete(candidates)
+        .where(eq(candidates.applicationId, applicationId));
+    }
+
+    return await getApplicationByIdService(applicationId);
+  });
 };
 
 /**
@@ -140,13 +193,19 @@ export const updateManifestoService = async (
 
 /**
  * Withdraw application (Strictly typed)
+ * Also ensures removal from candidates table if it was already approved
  */
 export const withdrawApplicationService = async (id: string, userId: string) => {
-  return await db.delete(candidateApplications)
-    .where(and(
-      eq(candidateApplications.id, id),
-      eq(candidateApplications.userId, userId),
-      // eq(candidateApplications.status, 'pending')
-    ))
-    .returning();
+  return await db.transaction(async (tx) => {
+    // Also delete from candidates table if application is withdrawn
+    await tx.delete(candidates)
+      .where(eq(candidates.applicationId, id));
+
+    return await tx.delete(candidateApplications)
+      .where(and(
+        eq(candidateApplications.id, id),
+        eq(candidateApplications.userId, userId)
+      ))
+      .returning();
+  });
 };

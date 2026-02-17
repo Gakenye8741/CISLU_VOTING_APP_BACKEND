@@ -107,7 +107,7 @@ export const voterHistory = pgTable('voter_history', {
 
 // --- 7. VOTES (The Secret Ballot Box) ---
 export const votes = pgTable('votes', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: uuid('id').defaultRandom(),
   electionId: uuid('election_id').references(() => elections.id).notNull(),
   positionId: uuid('position_id').references(() => positions.id).notNull(),
   candidateId: uuid('candidate_id').references(() => candidates.id).notNull(),
