@@ -261,20 +261,32 @@ export const updatePassword: RequestHandler = async (req, res) => {
     const studentRegNo = (req as any).user?.studentRegNo; 
     if (!studentRegNo) return res.status(401).json({ error: "Unauthorized: Missing user info" });
 
-    const { password } = parseResult.data;
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    // 1. Get both current and new password from the parsed data
+    const { currentPassword, password: newPassword } = parseResult.data;
+
+    // 2. Fetch the user's current hashed password from the DB
+    const existingUser = await getUserByRegNoService(studentRegNo);
+    if (!existingUser) return res.status(404).json({ error: "User not found" });
+
+    // 3. THE SECURITY CHECK: Compare currentPassword with the one in DB
+    const isMatch = await bcrypt.compare(currentPassword, existingUser.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "The current password you entered is incorrect" });
+    }
+
+    // 4. Hash the NEW password
+    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
     
+    // 5. Update in database
     await updateUserPasswordService(studentRegNo, hashedPassword);
 
-    const user = await getUserByRegNoService(studentRegNo);
-    if (user) {
-      const updateMsg = `
-        <p>Hello <span class="highlight">${user.fullName || studentRegNo}</span>,</p>
+    // Send confirmation email (Keep your existing logic)
+    const updateMsg = `
+        <p>Hello <span class="highlight">${existingUser.fullName || studentRegNo}</span>,</p>
         <p>This is an automated confirmation that your password has been successfully updated.</p>
         <p><em>Security Tip: Remember to never share your credentials with anyone.</em></p>
       `;
-      await sendNotificationEmail(user.email, "Password Updated", updateMsg, undefined, "password-update");
-    }
+    await sendNotificationEmail(existingUser.email, "Password Updated", updateMsg, undefined, "password-update");
 
     res.status(200).json({ message: "Password updated successfully" });
   } catch (error: any) {

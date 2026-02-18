@@ -80,5 +80,10 @@ export const resetPasswordValidator = z.object({
    6. Password Update Validator
 ================================ */
 export const updatePasswordValidator = z.object({
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  currentPassword: z.string().min(1, "Current password is required to verify identity"),
+  password: z
+    .string()
+    .min(6, "New password must be at least 6 characters")
+    .regex(/[a-zA-Z]/, "New password must contain at least one letter")
+    .regex(/\d/, "New password must contain at least one number"),
 });

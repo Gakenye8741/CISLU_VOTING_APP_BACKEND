@@ -52,16 +52,29 @@ export const getMyProfile: RequestHandler = async (req, res) => {
 
 export const updateProfile: RequestHandler = async (req, res) => {
   try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: "Unauthorized access" });
+    // FIX: Check both userId and id
+    const userId = (req as any).user?.userId || (req as any).user?.id;
 
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized access - No ID in token" });
+    }
+
+    // Pass the payload (req.body) to your service
     const updatedUser = await updateUserProfileService(userId, req.body);
-    if (!updatedUser) return res.status(404).json({ error: "User not found" });
+    
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     const { password, failedLoginAttempts, ...safeUser } = updatedUser;
-    res.status(200).json({ message: "Profile updated successfully", user: safeUser });
+    
+    return res.status(200).json({ 
+      message: "Profile updated successfully", 
+      user: safeUser 
+    });
+
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 

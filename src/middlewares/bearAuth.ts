@@ -32,10 +32,15 @@ export const verifyToken = async (token: string, secret: string): Promise<Decode
 export const authMiddleware = (allowedRoles: string[] | "any" = "any") => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.header("Authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : null;
+    
+    // Clean "Bearer " prefix and strip accidental quotes/backslashes
+    let token = authHeader?.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : null;
+    if (token) {
+      token = token.replace(/[\\"]/g, '').trim(); 
+    }
 
     if (!token) {
-     return res.status(401).json({ error: "DEBUG: NO TOKEN PROVIDED" });
+      return res.status(401).json({ error: "No token provided" });
     }
 
     const decodedToken = await verifyToken(token, process.env.JWT_SECRET!);
@@ -43,13 +48,14 @@ export const authMiddleware = (allowedRoles: string[] | "any" = "any") => {
       return res.status(401).json({ error: "Invalid or expired token" });
     }
 
-    // Role Check
+    // Attach to request
+    req.user = decodedToken;
+
     if (allowedRoles === "any" || allowedRoles.includes(decodedToken.role)) {
-      req.user = decodedToken;
       return next();
     }
 
-    return res.status(403).json({ error: "Access forbidden: insufficient permissions" });
+    return res.status(403).json({ error: "Access forbidden" });
   };
 };
 
