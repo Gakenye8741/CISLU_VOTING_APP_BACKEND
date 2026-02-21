@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // MUST match your Drizzle yearEnum: ["1", "2", "3", "4", "Alumni"]
-export const yearEnum = z.enum(["1", "2", "3", "4", "Alumni"]);
+export const yearEnum = z.enum(["1", "2", "3", "4"]);
 
 // -------------------------------
 // Create / Update Position Validator
