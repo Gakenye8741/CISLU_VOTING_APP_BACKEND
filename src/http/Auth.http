@@ -6,8 +6,9 @@
 @regNo =
 @email = 
 
-@StudentregNo = SC/COM/0001/22
-@Studentemail = wanjikukiruno@gmail.com
+@StudentregNo =  SC/COM/0275/25
+
+@Studentemail = michaeltundo5@gmail.com    
 
 ### 1. Register a new admin
 # If password is omitted, it defaults to the studentRegNo
@@ -19,9 +20,14 @@ Content-Type: application/json
   "email": "{{email}}",
   "role": "admin"
 }
+####
+@StudentregNo = SC/ICT/2418/25             
+@Studentemail = patriciambuvi57@gmail.com 
 
 ## 1. Register a new student
-# If password is omitted, it defaults to the studentRegNo
+# If password is omitted, it defaults to the studentR@StudentregNo =  SC/COM/0275/25
+
+
 ###
 POST {{baseUrl}}/register
 Content-Type: application/json
