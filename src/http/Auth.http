@@ -21,8 +21,8 @@ Content-Type: application/json
   "role": "admin"
 }
 ####
-@StudentregNo = SC/ICT/2418/25             
-@Studentemail = patriciambuvi57@gmail.com 
+@StudentregNo = SC/COM/0026/22           
+@Studentemail = briangaturu03@gmail.com
 
 ## 1. Register a new student
 # If password is omitted, it defaults to the studentR@StudentregNo =  SC/COM/0275/25
