@@ -23,6 +23,7 @@ import {
 import { incrementFailedLoginService, recordSuccessfulLoginService } from "../services/users/users.service";
 
 const SALT_ROUNDS = 10;
+const WEBSITE_URL = "https://luvotingapp.netlify.app/";
 
 // -------------------------------
 // 1. Register a new user
@@ -47,6 +48,9 @@ export const registerUser: RequestHandler = async (req, res) => {
       <div class="btn-box">
         <strong>Login ID:</strong> <span class="highlight">${studentRegNo}</span><br>
         <strong>Temporary Password:</strong> <span class="highlight">${passwordSource}</span>
+      </div>
+      <div style="margin: 20px 0;">
+        <a href="${WEBSITE_URL}" style="background-color: #003366; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Go to Voting Portal</a>
       </div>
       <p><strong>Next Steps:</strong><br> 
       1. Login to the portal.<br>
@@ -127,10 +131,6 @@ export const loginUser: RequestHandler = async (req, res) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "24h" });
 
     // 7. UPDATED REDIRECT LOGIC
-    // Profile is considered incomplete if:
-    // - fullName is missing OR 
-    // - yearOfStudy is missing OR 
-    // - fullName is still the default (the studentRegNo)
     const isProfileIncomplete = !(
       user.fullName && 
       user.yearOfStudy && 
@@ -192,7 +192,8 @@ export const forgotPassword: RequestHandler = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    // Using the Netlify URL for the reset flow
+    const resetLink = `https://luvotingapp.netlify.app/reset-password?token=${resetToken}`;
 
     const emailMessage = `
       <p>Hello <span class="highlight">${user.fullName || studentRegNo}</span>,</p>
@@ -221,7 +222,6 @@ export const forgotPassword: RequestHandler = async (req, res) => {
 // -------------------------------
 export const resetPassword: RequestHandler = async (req, res) => {
   try {
-    // We expect the token from the URL and the new password
     const { token, newPassword } = req.body;
 
     if (!token) return res.status(400).json({ error: "Reset token is required." });
@@ -239,7 +239,11 @@ export const resetPassword: RequestHandler = async (req, res) => {
     if (user) {
       const resetMsg = `
         <p>Your password for account <span class="highlight">${studentRegNo}</span> has been successfully reset.</p>
-        <p>You can now log in using your new credentials. If you did <strong>not</strong> authorize this change, contact IT immediately.</p>
+        <p>You can now log in using your new credentials.</p>
+        <div style="margin: 20px 0;">
+          <a href="${WEBSITE_URL}" style="background-color: #003366; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Login Now</a>
+        </div>
+        <p>If you did <strong>not</strong> authorize this change, contact IT immediately.</p>
       `;
       await sendNotificationEmail(user.email, "Security Confirmation", resetMsg, undefined, "password-reset");
     }
@@ -261,29 +265,26 @@ export const updatePassword: RequestHandler = async (req, res) => {
     const studentRegNo = (req as any).user?.studentRegNo; 
     if (!studentRegNo) return res.status(401).json({ error: "Unauthorized: Missing user info" });
 
-    // 1. Get both current and new password from the parsed data
     const { currentPassword, password: newPassword } = parseResult.data;
 
-    // 2. Fetch the user's current hashed password from the DB
     const existingUser = await getUserByRegNoService(studentRegNo);
     if (!existingUser) return res.status(404).json({ error: "User not found" });
 
-    // 3. THE SECURITY CHECK: Compare currentPassword with the one in DB
     const isMatch = await bcrypt.compare(currentPassword, existingUser.password);
     if (!isMatch) {
       return res.status(401).json({ error: "The current password you entered is incorrect" });
     }
 
-    // 4. Hash the NEW password
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
     
-    // 5. Update in database
     await updateUserPasswordService(studentRegNo, hashedPassword);
 
-    // Send confirmation email (Keep your existing logic)
     const updateMsg = `
         <p>Hello <span class="highlight">${existingUser.fullName || studentRegNo}</span>,</p>
         <p>This is an automated confirmation that your password has been successfully updated.</p>
+        <div style="margin: 20px 0;">
+          <a href="${WEBSITE_URL}" style="background-color: #28a745; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Return to App</a>
+        </div>
         <p><em>Security Tip: Remember to never share your credentials with anyone.</em></p>
       `;
     await sendNotificationEmail(existingUser.email, "Password Updated", updateMsg, undefined, "password-update");
