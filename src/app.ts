@@ -18,27 +18,37 @@ const app: Application = express();
 // --- CORS CONFIGURATION ---
 const allowedOrigins = [
     'https://luvotingapp.netlify.app', 
-    'http://localhost:5000'
+    'http://localhost:5000',
+    'http://localhost:5173'
 ];
 
 const corsOptions: cors.CorsOptions = {
     origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl requests)
+        // Allow requests with no origin (like Postman or mobile apps)
         if (!origin) return callback(null, true);
         
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            // Log for debugging on Render logs
+            console.error(`CORS Error: Origin ${origin} not allowed`);
             callback(new Error('Not allowed by CORS'));
         }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    credentials: true, // Allow cookies if needed later
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true,
+    optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 };
 
-// Middleware stack
-app.use(helmet()); 
-app.use(cors(corsOptions)); // Apply custom options here
+// --- MIDDLEWARE STACK ---
+// 1. CORS first to handle Preflight (OPTIONS) requests immediately
+app.use(cors(corsOptions)); 
+
+// 2. Helmet next, but we ensure it doesn't break our Cross-Origin needs
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -48,13 +58,13 @@ app.get('/', (req, res: Response) => {
 });
 
 // Routes
-app.use('/api/auth/', AuthRouter);
-app.use('/api/votes/', VotesRouter);
-app.use('/api/users/', UsersRouter);
-app.use('/api/voter-history/', VoterHistoryRouter);
-app.use('/api/elections/', ElectionRouter);
-app.use('/api/candidates/', CandidatesRouter);
-app.use('/api/positions/', PositionsRouter);
+app.use('/api/auth', AuthRouter); // Note: Removed trailing slashes for consistency
+app.use('/api/votes', VotesRouter);
+app.use('/api/users', UsersRouter);
+app.use('/api/voter-history', VoterHistoryRouter);
+app.use('/api/elections', ElectionRouter);
+app.use('/api/candidates', CandidatesRouter);
+app.use('/api/positions', PositionsRouter);
 app.use('/api/candidate-applications', CandidateApplicationsRouter);
 
 // 404 handler
